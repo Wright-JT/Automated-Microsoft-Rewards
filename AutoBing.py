@@ -1,6 +1,9 @@
 from selenium import webdriver
 from faker import Faker
 from ping3 import ping
+from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import NoSuchElementException, TimeoutException, ElementNotInteractableException, UnexpectedAlertPresentException, NoAlertPresentException
 import ctypes
 import os
 import datetime
@@ -68,6 +71,9 @@ def internet_check():
         time.sleep(600)
 
 def point_counter(BeforeOrAfter):
+    driver.get('https://www.bing.com')
+    driver.refresh()
+    time.sleep(5)
     while True:
         try: 
             pointsCheckerData = driver.find_element('id', "id_rc")
@@ -110,6 +116,92 @@ def sign_in(Username, Password):
         except:
             time.sleep(2)
 
+def dailies():
+    driver.get('https://rewards.bing.com/?ref=rewardspanel')
+    time.sleep(10)
+    dailies_list = driver.find_elements(By.XPATH, '//*[@id="daily-sets"]//mee-card-group[1]/div/mee-card')
+    x = 0
+    for daily in dailies_list:
+        x = x + 1
+        time.sleep(5)
+        while True:
+            try:
+                daily.click()
+                driver.switch_to.window(driver.window_handles[1])
+                break
+            except:
+                pass
+        if x == 1: #CLICK
+            print('Daily started')
+            time.sleep(3)
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+            print('Daily passed')
+        if x == 2: #QUIZ
+            print('Quiz started')
+            time.sleep(3)
+            if driver.find_element(By.XPATH, '//img[contains(@alt, "Checkmark Image")]'): #Checking to see if quiz is already completed
+                pass
+            else:
+                if driver.find_element(By.CLASS_NAME, "wk_choicesInstLink"): #Finding quiz type
+                    timeout = 0
+                    while timeout != 10: 
+                        try:
+                            driver.find_element(By.CLASS_NAME, "wk_choicesInstLink").click()
+                            time.sleep(3)
+                            driver.find_element(By.XPATH,'//input[@type="submit" and @name="submit"]').click()
+                            time.sleep(8)
+                        except:
+                            timeout = timeout + 1
+                            print(f'Quiz Error: {timeout} timeouts.')
+                            time.sleep(2)
+
+                elif driver.find_element(By.ID,'rqStartQuiz'): #Finding the type of quiz
+                    timeout = 0
+                    driver.find_element(By.ID,'rqStartQuiz').click()
+                    time.sleep(5)
+                    span_element = driver.find_element(By.CLASS_NAME,"rqMCredits")
+                    total_questions = int(span_element.text) // 10
+                    while total_questions != 0:
+                        try:
+                            print(f'Total questions: {total_questions}')
+                            correctAnswer = driver.execute_script("return _w.rewardsQuizRenderInfo.correctAnswer")
+                            if driver.find_element(By.ID,"rqAnswerOption0").get_attribute("data-option") == correctAnswer:
+                                driver.find_element(By.ID,"rqAnswerOption0").click()
+                            elif driver.find_element(By.ID,"rqAnswerOption1").get_attribute("data-option") == correctAnswer:
+                                driver.find_element(By.ID,"rqAnswerOption1").click()
+                            elif driver.find_element(By.ID,"rqAnswerOption2").get_attribute("data-option") == correctAnswer:
+                                driver.find_element(By.ID,"rqAnswerOption2").click()
+                            elif driver.find_element(By.ID,"rqAnswerOption3").get_attribute("data-option") == correctAnswer:
+                                driver.find_element(By.ID,"rqAnswerOption3").click()    
+                            else:
+                                break
+                            total_questions = total_questions - 1
+                            time.sleep(5)
+                        except NoSuchElementException:
+                            timeout = timeout + 1
+                            print(f'Quiz Error: {timeout} timeouts.')
+                            time.sleep(2)
+                else:
+                    pass
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+            print('Quiz passed')
+
+    if x == 3: #POLL
+        if driver.find_element(By.XPATH, '//img[contains(@alt, "Checkmark Image")]'): #Checking to see if poll is already completed
+            print('Poll started')
+            print('Poll passed')
+            pass
+        else:
+            print('Poll started')
+            time.sleep(3)
+            driver.find_element(By. ID,"btoption" + str(random.randint(0, 1))).click()
+            time.sleep(5)
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+            print('Poll passed')
+
 def power_off():
     while True:
         try:
@@ -130,14 +222,12 @@ if __name__ == "__main__":
                     driver = initialize_driver()
                 driver.maximize_window()
                 sign_in(Credentials['Username'], Credentials['Password'])
-                driver.get('https://www.bing.com')
-                driver.refresh()
-                time.sleep(5)
                 pointsCheck1 = point_counter(pointsCheck1)
                 auto_search(desktop_searches)
                 mobile_swap(driver, 'mobile')
                 auto_search(mobile_searches)
                 mobile_swap(driver, 'desktop')
+                dailies()
                 pointsCheck2 = point_counter(pointsCheck1)
                 log_points(pointsCheck1, pointsCheck2)
             except Exception:               
