@@ -3,7 +3,6 @@ from faker import Faker
 from ping3 import ping
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
-from selenium.common.exceptions import NoSuchElementException, TimeoutException, ElementNotInteractableException, UnexpectedAlertPresentException, NoAlertPresentException
 import ctypes
 import os
 import datetime
