@@ -3,6 +3,7 @@ from faker import Faker
 from ping3 import ping
 from selenium.webdriver.common.by import By
 from selenium.common.exceptions import NoSuchElementException
+from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 import ctypes
 import os
@@ -17,8 +18,8 @@ pointsCheck1 = 0
 pointsCheck2 = 0
 error_detected_max = 5 #Amount of times the program will restart if the program crashes.
 
-desktop_searches = 2 #34 Searches = 170 Points
-mobile_searches = 2 #20 Searches = 100 Points
+desktop_searches = 0 #34 Searches = 170 Points
+mobile_searches = 0 #20 Searches = 100 Points
 
 Credentials = {
 'Username': 'YOUR EMAIL',
@@ -70,10 +71,10 @@ def internet_check():
         print('No internet detected. Trying again in 10 minutes.')
         time.sleep(600)
 
-def point_counter(BeforeOrAfter):
+def point_counter(BeforeOrAfter): #Checks how many points were made before and after script
     driver.get('https://www.bing.com')
     driver.refresh()
-    time.sleep(5)
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "id_rc")))
     while True:
         try: 
             pointsCheckerData = driver.find_element('id', "id_rc")
@@ -87,7 +88,76 @@ def point_counter(BeforeOrAfter):
             driver.refresh()
             time.sleep(10)
 
-def log_points(pointsCheck1, pointsCheck2):
+def checkmark_image_check():
+    driver.find_element(By.XPATH, '//img[contains(@alt, "Checkmark Image")]')
+
+def browser_quiz():
+    if driver.find_element(By.CLASS_NAME, "wk_choicesInstLink"): #Finding quiz type
+        timeout = 0
+        while timeout != 10: 
+            try:
+                driver.find_element(By.CLASS_NAME, "wk_choicesInstLink").click()
+                time.sleep(3)
+                driver.find_element(By.XPATH,'//input[@type="submit" and @name="submit"]').click()
+                time.sleep(8)
+            except:
+                timeout = timeout + 1
+                print(f'Quiz Error: {timeout} timeouts.')
+                time.sleep(2)
+    else:
+        pass
+
+def popup_quiz():
+    if driver.find_element(By.ID,'rqStartQuiz'): #Finding the type of quiz
+        timeout = 0
+        driver.find_element(By.ID,'rqStartQuiz').click()
+        time.sleep(5)
+        span_element = driver.find_element(By.CLASS_NAME,"rqMCredits")
+        total_questions = int(span_element.text) // 10
+        while total_questions != 0 or timeout == 10:
+            try:
+                print(f'Total questions: {total_questions}')
+                correctAnswer = driver.execute_script("return _w.rewardsQuizRenderInfo.correctAnswer")
+                if driver.find_element(By.ID,"rqAnswerOption0").get_attribute("data-option") == correctAnswer:
+                    driver.find_element(By.ID,"rqAnswerOption0").click()
+                elif driver.find_element(By.ID,"rqAnswerOption1").get_attribute("data-option") == correctAnswer:
+                    driver.find_element(By.ID,"rqAnswerOption1").click()
+                elif driver.find_element(By.ID,"rqAnswerOption2").get_attribute("data-option") == correctAnswer:
+                    driver.find_element(By.ID,"rqAnswerOption2").click()
+                elif driver.find_element(By.ID,"rqAnswerOption3").get_attribute("data-option") == correctAnswer:
+                    driver.find_element(By.ID,"rqAnswerOption3").click()    
+                else:
+                    break
+                total_questions = total_questions - 1
+                time.sleep(5)
+            except NoSuchElementException:
+                timeout = timeout + 1
+                print(f'Quiz Error: {timeout} timeouts.')
+                time.sleep(2)
+    else:
+        pass
+
+def daily_poll():
+    if driver.find_element(By.XPATH, '//img[contains(@alt, "Checkmark Image")]'):
+        time.sleep(5)
+    else:
+        try:
+            print('Poll started')
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "btoption")))
+            driver.find_element(By. ID,"btoption" + str(random.randint(0, 1))).click()
+            time.sleep(5)
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+        except Exception as e:
+            print(f'Error code: {e}')
+            time.sleep(1)
+            pass
+
+def switch_window():
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
+
+def log_points(pointsCheck1, pointsCheck2): #Logs made points into text document
     pointsLog = 'PointsLog.txt'
     newLine = (str(f'{pointsCheck2-pointsCheck1} points generated on {date}, {pointsCheck2} total.\n'))
     if os.path.exists(pointsLog):
@@ -99,18 +169,20 @@ def log_points(pointsCheck1, pointsCheck2):
         with open(pointsLog, 'w') as file:
             file.write(newLine)
 
-def sign_in(Username, Password):
+def sign_in():
     driver.get('https://tinyurl.com/ydfke3nt') 
     while True:
         try:
-            driver.find_element('id', 'i0116').send_keys(Username)
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "i0116")))
+            driver.find_element('id', 'i0116').send_keys(Credentials['Username'])
             driver.find_element('id', 'idSIButton9').click()
             break
         except:
             time.sleep(2)
     while True:
         try:
-            driver.find_element('id', 'i0118').send_keys(Password)
+            WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "i0118")))
+            driver.find_element('id', 'i0118').send_keys(Credentials['Password'])
             driver.find_element('id', 'idSIButton9').click()
             break
         except:
@@ -118,14 +190,12 @@ def sign_in(Username, Password):
 
 def dailies():
     driver.get('https://rewards.bing.com/?ref=rewardspanel')
-    time.sleep(10)
+    WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.XPATH, '//*[@id="daily-sets"]//mee-card-group[1]/div/mee-card')))
     dailies_list = driver.find_elements(By.XPATH, '//*[@id="daily-sets"]//mee-card-group[1]/div/mee-card')
-    x = 0
+    DailyCardNum = 0
     for daily in dailies_list:
-        x = x + 1
+        DailyCardNum = DailyCardNum + 1
         time.sleep(5)
-        if x == 3:
-            print('x is 3 currently.')
         while True:
             try:
                 daily.click()
@@ -134,89 +204,27 @@ def dailies():
                 break
             except:
                 pass
-        if x == 1: #CLICK
+        if DailyCardNum == 1: #CLICK
             print('Daily started')
-            time.sleep(3)
-            driver.close()
-            driver.switch_to.window(driver.window_handles[0])
+            time.sleep(5)
+            switch_window()
             print('Daily passed')
-        if x == 2: #QUIZ
+        if DailyCardNum == 2: #QUIZ
             print('Quiz started')
             time.sleep(3)
-            if driver.find_element(By.XPATH, '//img[contains(@alt, "Checkmark Image")]'): #Checking to see if quiz is already completed
-                print('made it here!?')
-                pass
+            if driver.find_element(By.XPATH, '//img[contains(@alt, "Checkmark Image")]'):
+                time.sleep(3)
             else:
-                if driver.find_element(By.CLASS_NAME, "wk_choicesInstLink"): #Finding quiz type
-                    print('made it here!?')
-
-                    timeout = 0
-                    while timeout != 10: 
-                        try:
-                            driver.find_element(By.CLASS_NAME, "wk_choicesInstLink").click()
-                            time.sleep(3)
-                            driver.find_element(By.XPATH,'//input[@type="submit" and @name="submit"]').click()
-                            time.sleep(8)
-                        except:
-                            timeout = timeout + 1
-                            print(f'Quiz Error: {timeout} timeouts.')
-                            time.sleep(2)
-
-                if driver.find_element(By.ID,'rqStartQuiz'): #Finding the type of quiz
-                    print('made it here?')
-                    timeout = 0
-                    driver.find_element(By.ID,'rqStartQuiz').click()
-                    time.sleep(5)
-                    span_element = driver.find_element(By.CLASS_NAME,"rqMCredits")
-                    total_questions = int(span_element.text) // 10
-                    while total_questions != 0:
-                        try:
-                            print(f'Total questions: {total_questions}')
-                            correctAnswer = driver.execute_script("return _w.rewardsQuizRenderInfo.correctAnswer")
-                            if driver.find_element(By.ID,"rqAnswerOption0").get_attribute("data-option") == correctAnswer:
-                                driver.find_element(By.ID,"rqAnswerOption0").click()
-                            elif driver.find_element(By.ID,"rqAnswerOption1").get_attribute("data-option") == correctAnswer:
-                                driver.find_element(By.ID,"rqAnswerOption1").click()
-                            elif driver.find_element(By.ID,"rqAnswerOption2").get_attribute("data-option") == correctAnswer:
-                                driver.find_element(By.ID,"rqAnswerOption2").click()
-                            elif driver.find_element(By.ID,"rqAnswerOption3").get_attribute("data-option") == correctAnswer:
-                                driver.find_element(By.ID,"rqAnswerOption3").click()    
-                            else:
-                                break
-                            total_questions = total_questions - 1
-                            time.sleep(5)
-                        except NoSuchElementException:
-                            timeout = timeout + 1
-                            print(f'Quiz Error: {timeout} timeouts.')
-                            time.sleep(2)
-                else:
-                    pass
-            driver.close()
-            driver.switch_to.window(driver.window_handles[0])
+                browser_quiz() 
+                popup_quiz()
+            switch_window()
             print('Quiz passed')
-
-        if x == 3: #POLL
-            print(f'x is {x}')
-            while True:
-                try:
-                    checkmark_elements = driver.find_elements(By.XPATH, '//img[contains(@alt, "Checkmark Image")]')
-                    if checkmark_elements: #Checking to see if poll is already completed
-                        print('Poll started')
-                        print('Poll passed')
-                        break
-                    else:
-                        print('Poll started')
-                        time.sleep(3)
-                        driver.find_element(By. ID,"btoption" + str(random.randint(0, 1))).click()
-                        time.sleep(5)
-                        driver.close()
-                        driver.switch_to.window(driver.window_handles[0])
-                        print('Poll passed')
-                except Exception as e:
-                    print(f'Error code: {e}')
-                    time.sleep(1)
-                    pass
-
+        if DailyCardNum == 3: #POLL
+            print('Poll started')
+            daily_poll()
+            switch_window()
+            print('Poll passed')
+            
 def power_off():
     while True:
         try:
@@ -236,7 +244,7 @@ if __name__ == "__main__":
                 if driver is None:
                     driver = initialize_driver()
                 driver.maximize_window()
-                sign_in(Credentials['Username'], Credentials['Password'])
+                sign_in()
                 pointsCheck1 = point_counter(pointsCheck1)
                 auto_search(desktop_searches)
                 mobile_swap(driver, 'mobile')
@@ -253,6 +261,6 @@ if __name__ == "__main__":
                 break
         break
     print('AutoBing successful.')
-    time.sleep(10)
-    #power_off()
+    time.sleep(5)
+    power_off()
     
