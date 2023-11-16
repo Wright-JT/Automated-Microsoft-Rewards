@@ -2,6 +2,7 @@ from selenium import webdriver
 from faker import Faker
 from ping3 import ping
 from selenium.webdriver.common.by import By
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.support.ui import WebDriverWait
 import ctypes
 import os
@@ -45,7 +46,7 @@ def auto_search(SearchType): #Searches with random fake names.
         fake = Faker()
         search = fake.name()
         driver.get(f'https://www.bing.com/search?q={search}&qs=n&form=QBRE&sp=-1&ghc=1&lq=0&pq={search}&sc=11-4&sk=&cvid=B71527E3F16E44EC859237C4FC049012&ghsh=0&ghacc=0&ghpl=')
-        time.sleep(random.randint(7,10))
+        time.sleep(random.randint(3,4))
         SearchType = SearchType - 1
 
 def mobile_swap(driver, x):
@@ -84,7 +85,7 @@ def point_counter(BeforeOrAfter):
             return pointsChecked
         except:
             driver.refresh()
-            time.sleep(5)
+            time.sleep(10)
 
 def log_points(pointsCheck1, pointsCheck2):
     pointsLog = 'PointsLog.txt'
@@ -123,9 +124,12 @@ def dailies():
     for daily in dailies_list:
         x = x + 1
         time.sleep(5)
+        if x == 3:
+            print('x is 3 currently.')
         while True:
             try:
                 daily.click()
+                time.sleep(4)
                 driver.switch_to.window(driver.window_handles[1])
                 break
             except:
@@ -140,9 +144,12 @@ def dailies():
             print('Quiz started')
             time.sleep(3)
             if driver.find_element(By.XPATH, '//img[contains(@alt, "Checkmark Image")]'): #Checking to see if quiz is already completed
+                print('made it here!?')
                 pass
             else:
                 if driver.find_element(By.CLASS_NAME, "wk_choicesInstLink"): #Finding quiz type
+                    print('made it here!?')
+
                     timeout = 0
                     while timeout != 10: 
                         try:
@@ -155,7 +162,8 @@ def dailies():
                             print(f'Quiz Error: {timeout} timeouts.')
                             time.sleep(2)
 
-                elif driver.find_element(By.ID,'rqStartQuiz'): #Finding the type of quiz
+                if driver.find_element(By.ID,'rqStartQuiz'): #Finding the type of quiz
+                    print('made it here?')
                     timeout = 0
                     driver.find_element(By.ID,'rqStartQuiz').click()
                     time.sleep(5)
@@ -187,19 +195,27 @@ def dailies():
             driver.switch_to.window(driver.window_handles[0])
             print('Quiz passed')
 
-    if x == 3: #POLL
-        if driver.find_element(By.XPATH, '//img[contains(@alt, "Checkmark Image")]'): #Checking to see if poll is already completed
-            print('Poll started')
-            print('Poll passed')
-            pass
-        else:
-            print('Poll started')
-            time.sleep(3)
-            driver.find_element(By. ID,"btoption" + str(random.randint(0, 1))).click()
-            time.sleep(5)
-            driver.close()
-            driver.switch_to.window(driver.window_handles[0])
-            print('Poll passed')
+        if x == 3: #POLL
+            print(f'x is {x}')
+            while True:
+                try:
+                    checkmark_elements = driver.find_elements(By.XPATH, '//img[contains(@alt, "Checkmark Image")]')
+                    if checkmark_elements: #Checking to see if poll is already completed
+                        print('Poll started')
+                        print('Poll passed')
+                        break
+                    else:
+                        print('Poll started')
+                        time.sleep(3)
+                        driver.find_element(By. ID,"btoption" + str(random.randint(0, 1))).click()
+                        time.sleep(5)
+                        driver.close()
+                        driver.switch_to.window(driver.window_handles[0])
+                        print('Poll passed')
+                except Exception as e:
+                    print(f'Error code: {e}')
+                    time.sleep(1)
+                    pass
 
 def power_off():
     while True:
@@ -238,5 +254,5 @@ if __name__ == "__main__":
         break
     print('AutoBing successful.')
     time.sleep(10)
-    power_off()
+    #power_off()
     
