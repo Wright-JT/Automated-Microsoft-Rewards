@@ -224,7 +224,26 @@ def dailies():
             daily_poll()
             switch_window()
             print('Poll passed')
-            
+
+def find_all_dailies():
+    try:
+        driver.get('https://rewards.bing.com/')
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'span.mee-icon.mee-icon-AddMedium')))
+        icon_elements = driver.find_elements(By.CSS_SELECTOR, 'span.mee-icon.mee-icon-AddMedium')
+        for icon_element in icon_elements:
+            icon_element.find_element(By.XPATH, './ancestor::a[contains(@class, "ds-card-sec")]').click()
+            driver.switch_to.window(driver.window_handles[1])
+            try:
+                browser_quiz()
+                popup_quiz()
+            except:
+                pass
+            time.sleep(5)
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+    except Exception as e:
+        print(f'Error {e}')
+
 def power_off():
     while True:
         try:
@@ -251,6 +270,7 @@ if __name__ == "__main__":
                 auto_search(mobile_searches)
                 mobile_swap(driver, 'desktop')
                 dailies()
+                find_all_dailies()
                 pointsCheck2 = point_counter(pointsCheck1)
                 log_points(pointsCheck1, pointsCheck2)
             except Exception:               
