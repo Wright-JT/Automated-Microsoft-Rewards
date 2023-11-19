@@ -13,9 +13,10 @@ date = datetime.date.today()
 pointsCheck1 = 0
 pointsCheck2 = 0
 error_detected_max = 5 #Amount of times the program will restart if the program crashes.
+sign_in_error = 3
 
-desktop_searches = 2 #34 Searches = 170 Points
-mobile_searches = 2 #20 Searches = 100 Points
+desktop_searches = 40 #34 Searches = 170 Points
+mobile_searches = 25 #20 Searches = 100 Points
 
 Credentials = {
 'Username': 'YOUR EMAIL',
@@ -79,9 +80,70 @@ def point_counter(BeforeOrAfter):
             return pointsChecked
         except:
             driver.refresh()
-            time.sleep(5)
+            time.sleep(10)
 
-def log_points(pointsCheck1, pointsCheck2):
+def browser_quiz():
+    if driver.find_element(By.CLASS_NAME, "wk_choicesInstLink"): #Finding quiz type
+        timeout = 0
+        while timeout < 10: 
+            try:
+                driver.find_element(By.XPATH, '//img[contains(@alt, "Checkmark Image")]')
+                break
+            except:
+                while True:
+                    driver.find_element(By.CLASS_NAME, "wk_choicesInstLink").click()
+                    time.sleep(3)
+                    driver.find_element(By.XPATH,'//input[@type="submit" and @name="submit"]').click()
+                    time.sleep(8)
+                    break
+    else:
+        pass
+
+def popup_quiz():
+    try:
+        driver.find_element(By.ID,'rqStartQuiz') #Finding the type of quiz
+        timeout = 0
+        driver.find_element(By.ID,'rqStartQuiz').click()
+        time.sleep(5)
+        span_element = driver.find_element(By.CLASS_NAME,"rqMCredits")
+        total_questions = int(span_element.text) // 10
+        while total_questions != 0 or timeout == 10:
+            try:
+                print(f'Total questions: {total_questions}')
+                correctAnswer = driver.execute_script("return _w.rewardsQuizRenderInfo.correctAnswer")
+                if driver.find_element(By.ID,"rqAnswerOption0").get_attribute("data-option") == correctAnswer:
+                    driver.find_element(By.ID,"rqAnswerOption0").click()
+                elif driver.find_element(By.ID,"rqAnswerOption1").get_attribute("data-option") == correctAnswer:
+                    driver.find_element(By.ID,"rqAnswerOption1").click()
+                elif driver.find_element(By.ID,"rqAnswerOption2").get_attribute("data-option") == correctAnswer:
+                    driver.find_element(By.ID,"rqAnswerOption2").click()
+                elif driver.find_element(By.ID,"rqAnswerOption3").get_attribute("data-option") == correctAnswer:
+                    driver.find_element(By.ID,"rqAnswerOption3").click()    
+                else:
+                    break
+                total_questions = total_questions - 1
+                time.sleep(5)
+            except NoSuchElementException:
+                timeout = timeout + 1
+                print(f'Quiz Error: {timeout} timeouts.')
+                time.sleep(2)
+    except:
+        pass
+
+def daily_poll():
+    try:
+        time.sleep(5)
+        #WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "btoption")))
+        driver.find_element(By. ID,"btoption" + str(random.randint(0, 1))).click()
+        time.sleep(5)
+    except Exception as e:
+        pass
+
+def switch_window():
+    driver.close()
+    driver.switch_to.window(driver.window_handles[0])
+
+def log_points(pointsCheck1, pointsCheck2): #Logs made points into text document
     pointsLog = 'PointsLog.txt'
     newLine = (str(f'{pointsCheck2-pointsCheck1} points generated on {date}, {pointsCheck2} total.\n'))
     if os.path.exists(pointsLog):
@@ -101,14 +163,42 @@ def sign_in(Username, Password):
             driver.find_element('id', 'idSIButton9').click()
             break
         except:
-            time.sleep(2)
+            sign_in_error = sign_in_error - 1
+            if sign_in_error == 0:
+                print('Invalid email address. Please make sure your credentials are correct.')
+                time.sleep(10)
+                sys.exit()
     while True:
         try:
             driver.find_element('id', 'i0118').send_keys(Password)
             driver.find_element('id', 'idSIButton9').click()
             break
         except:
-            time.sleep(2)
+            sign_in_error = sign_in_error - 1
+            if sign_in_error == 0:
+                print('Invalid password. Please make sure your credentials are correct.')
+                time.sleep(10)
+                sys.exit()
+
+def find_all_dailies():
+    try:
+        driver.get('https://rewards.bing.com/')
+        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'span.mee-icon.mee-icon-AddMedium')))
+        icon_elements = driver.find_elements(By.CSS_SELECTOR, 'span.mee-icon.mee-icon-AddMedium')
+        for icon_element in icon_elements:
+            icon_element.find_element(By.XPATH, './ancestor::a[contains(@class, "ds-card-sec")]').click()
+            driver.switch_to.window(driver.window_handles[1])
+            try:
+                browser_quiz()
+                popup_quiz()
+                daily_poll()
+            except:
+                pass
+            time.sleep(5)
+            driver.close()
+            driver.switch_to.window(driver.window_handles[0])
+    except Exception as e:
+        print(f'Error {e}')
 
 def power_off():
     while True:
@@ -148,6 +238,6 @@ if __name__ == "__main__":
                 break
         break
     print('AutoBing successful.')
-    time.sleep(10)
+    time.sleep(5)
     power_off()
     
