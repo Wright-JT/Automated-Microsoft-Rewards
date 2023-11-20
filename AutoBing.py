@@ -17,7 +17,6 @@ date = datetime.date.today()
 pointsCheck1 = 0
 pointsCheck2 = 0
 error_detected_max = 5 #Amount of times the program will restart if the program crashes.
-sign_in_error = 3
 
 desktop_searches = 40 #34 Searches = 170 Points
 mobile_searches = 25 #20 Searches = 100 Points
@@ -205,51 +204,7 @@ def sign_in(Username, Password):
             driver.find_element('id', 'idSIButton9').click()
             break
         except:
-            sign_in_error = sign_in_error - 1
-            if sign_in_error == 0:
-                print('Invalid password. Please make sure your credentials are correct.')
-                time.sleep(10)
-                sys.exit()
-
-def find_all_dailies():
-    try:
-        driver.get('https://rewards.bing.com/')
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'span.mee-icon.mee-icon-AddMedium')))
-        icon_elements = driver.find_elements(By.CSS_SELECTOR, 'span.mee-icon.mee-icon-AddMedium')
-        for icon_element in icon_elements:
-            icon_element.find_element(By.XPATH, './ancestor::a[contains(@class, "ds-card-sec")]').click()
-            driver.switch_to.window(driver.window_handles[1])
-            try:
-                browser_quiz()
-                popup_quiz()
-                daily_poll()
-            except:
-                pass
-            time.sleep(5)
-            driver.close()
-            driver.switch_to.window(driver.window_handles[0])
-    except Exception as e:
-        print(f'Error {e}')
-
-def find_all_dailies():
-    try:
-        driver.get('https://rewards.bing.com/')
-        WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'span.mee-icon.mee-icon-AddMedium')))
-        icon_elements = driver.find_elements(By.CSS_SELECTOR, 'span.mee-icon.mee-icon-AddMedium')
-        for icon_element in icon_elements:
-            icon_element.find_element(By.XPATH, './ancestor::a[contains(@class, "ds-card-sec")]').click()
-            driver.switch_to.window(driver.window_handles[1])
-            try:
-                browser_quiz()
-                popup_quiz()
-                daily_poll()
-            except:
-                pass
-            time.sleep(5)
-            driver.close()
-            driver.switch_to.window(driver.window_handles[0])
-    except Exception as e:
-        print(f'Error {e}')
+            time.sleep(2)
 
 def find_all_dailies():
     try:
