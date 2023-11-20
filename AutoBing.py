@@ -112,16 +112,11 @@ def popup_quiz():
             try:
                 print(f'Total questions: {total_questions}')
                 correctAnswer = driver.execute_script("return _w.rewardsQuizRenderInfo.correctAnswer")
-                if driver.find_element(By.ID,"rqAnswerOption0").get_attribute("data-option") == correctAnswer:
-                    driver.find_element(By.ID,"rqAnswerOption0").click()
-                elif driver.find_element(By.ID,"rqAnswerOption1").get_attribute("data-option") == correctAnswer:
-                    driver.find_element(By.ID,"rqAnswerOption1").click()
-                elif driver.find_element(By.ID,"rqAnswerOption2").get_attribute("data-option") == correctAnswer:
-                    driver.find_element(By.ID,"rqAnswerOption2").click()
-                elif driver.find_element(By.ID,"rqAnswerOption3").get_attribute("data-option") == correctAnswer:
-                    driver.find_element(By.ID,"rqAnswerOption3").click()    
-                else:
-                    break
+                for AnswerNum in range(4):
+                    option_value = driver.find_element(By.ID, f"rqAnswerOption{AnswerNum}").get_attribute("data-option")
+                    if option_value == correctAnswer:
+                        driver.find_element(By.ID, f"rqAnswerOption{AnswerNum}").click()
+                        break
                 total_questions = total_questions - 1
                 time.sleep(5)
             except NoSuchElementException:
@@ -172,7 +167,7 @@ def credentials():
 
         if (Email == 'YOUR EMAIL HERE') and (Password == 'YOUR PASSWORD HERE'):
             print('Please add a username and password to the credentials text document.')
-            time.sleep(5)
+            time.sleep(10)
             driver.quit()
             sys.exit()
         else:
@@ -182,9 +177,9 @@ def credentials():
         with open(Credentials, 'w') as file:
             file.write('Do not change or modify anything that is not in quotes.\n\nUsername: "YOUR EMAIL HERE" \nPassword: "YOUR PASSWORD HERE"')
             print('Please add a username and password to the credentials text document.')
-            time.sleep(5)
-            driver.quit()
-            sys.exit()
+        time.sleep(10)
+        driver.quit()
+        sys.exit()
 
 def sign_in(Username, Password):
     driver.get('https://tinyurl.com/ydfke3nt') 
