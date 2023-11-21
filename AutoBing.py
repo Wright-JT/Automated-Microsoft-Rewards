@@ -18,8 +18,8 @@ pointsCheck1 = 0
 pointsCheck2 = 0
 error_detected_max = 5 #Amount of times the program will restart if the program crashes.
 
-desktop_searches = 40 #34 Searches = 170 Points
-mobile_searches = 25 #20 Searches = 100 Points
+desktop_searches = 0 #34 Searches = 170 Points
+mobile_searches = 0 #20 Searches = 100 Points
 
 def initialize_driver():
     try:
@@ -38,7 +38,7 @@ def total_errors(errors_detected):
         print(f'Error detected, restarting in 10 seconds... ({errors_detected} restarts remaining.)')
         time.sleep(10)
 
-def auto_search(SearchType): #Searches with random fake names.
+def auto_search(SearchType):
     while SearchType > 0:
         fake = Faker()
         search = fake.name()
@@ -84,7 +84,8 @@ def point_counter(BeforeOrAfter):
             time.sleep(10)
 
 def browser_quiz():
-    if driver.find_element(By.CLASS_NAME, "wk_choicesInstLink"): #Finding quiz type
+    try: 
+        driver.find_element(By.CLASS_NAME, "wk_choicesInstLink")
         timeout = 0
         while timeout < 10: 
             try:
@@ -97,12 +98,11 @@ def browser_quiz():
                     driver.find_element(By.XPATH,'//input[@type="submit" and @name="submit"]').click()
                     time.sleep(8)
                     break
-    else:
+    except:
         pass
 
 def popup_quiz():
     try:
-        driver.find_element(By.ID,'rqStartQuiz') #Finding the type of quiz
         timeout = 0
         driver.find_element(By.ID,'rqStartQuiz').click()
         time.sleep(5)
@@ -128,11 +128,9 @@ def popup_quiz():
 
 def daily_poll():
     try:
-        time.sleep(5)
-        #WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.ID, "btoption")))
         driver.find_element(By. ID,"btoption" + str(random.randint(0, 1))).click()
         time.sleep(5)
-    except Exception as e:
+    except:
         pass
 
 def switch_window():
@@ -210,6 +208,7 @@ def find_all_dailies():
             icon_element.find_element(By.XPATH, './ancestor::a[contains(@class, "ds-card-sec")]').click()
             driver.switch_to.window(driver.window_handles[1])
             try:
+                time.sleep(3)
                 browser_quiz()
                 popup_quiz()
                 daily_poll()
@@ -222,14 +221,10 @@ def find_all_dailies():
         print(f'Error {e}')
 
 def power_off():
-    while True:
-        try:
-            driver.quit()
-            ctypes.windll.powrprof.SetSuspendState(0, 1, 0)
-            sys.exit()
-        except:
-            ctypes.windll.powrprof.SetSuspendState(0, 1, 0)
-            sys.exit(1)
+    driver.quit()
+    ctypes.windll.powrprof.SetSuspendState(0, 1, 0)
+    sys.exit()
+      
 
 if __name__ == "__main__":
     driver = initialize_driver()
