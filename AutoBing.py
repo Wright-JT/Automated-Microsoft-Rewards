@@ -18,10 +18,8 @@ pointsCheck1 = 0
 pointsCheck2 = 0
 error_detected_max = 5 #Amount of times the program will restart if the program crashes.
 
-desktop_searches = 0 #34 Searches = 170 Points
-mobile_searches = 0 #20 Searches = 100 Points
-desktop_searches = 0 #34 Searches = 170 Points
-mobile_searches = 0 #20 Searches = 100 Points
+desktop_searches = 40 #34 Searches = 170 Points
+mobile_searches = 25 #20 Searches = 100 Points
 
 def initialize_driver():
     try:
