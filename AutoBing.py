@@ -20,6 +20,8 @@ error_detected_max = 5 #Amount of times the program will restart if the program 
 
 desktop_searches = 0 #34 Searches = 170 Points
 mobile_searches = 0 #20 Searches = 100 Points
+desktop_searches = 0 #34 Searches = 170 Points
+mobile_searches = 0 #20 Searches = 100 Points
 
 def initialize_driver():
     try:
@@ -38,6 +40,7 @@ def total_errors(errors_detected):
         print(f'Error detected, restarting in 10 seconds... ({errors_detected} restarts remaining.)')
         time.sleep(10)
 
+def auto_search(SearchType):
 def auto_search(SearchType):
     while SearchType > 0:
         fake = Faker()
@@ -86,6 +89,8 @@ def point_counter(BeforeOrAfter):
 def browser_quiz():
     try: 
         driver.find_element(By.CLASS_NAME, "wk_choicesInstLink")
+    try: 
+        driver.find_element(By.CLASS_NAME, "wk_choicesInstLink")
         timeout = 0
         while timeout < 10: 
             try:
@@ -98,6 +103,7 @@ def browser_quiz():
                     driver.find_element(By.XPATH,'//input[@type="submit" and @name="submit"]').click()
                     time.sleep(8)
                     break
+    except:
     except:
         pass
 
@@ -130,6 +136,7 @@ def daily_poll():
     try:
         driver.find_element(By. ID,"btoption" + str(random.randint(0, 1))).click()
         time.sleep(5)
+    except:
     except:
         pass
 
