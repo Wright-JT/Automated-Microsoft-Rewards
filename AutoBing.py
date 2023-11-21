@@ -41,7 +41,6 @@ def total_errors(errors_detected):
         time.sleep(10)
 
 def auto_search(SearchType):
-def auto_search(SearchType):
     while SearchType > 0:
         fake = Faker()
         search = fake.name()
@@ -89,8 +88,6 @@ def point_counter(BeforeOrAfter):
 def browser_quiz():
     try: 
         driver.find_element(By.CLASS_NAME, "wk_choicesInstLink")
-    try: 
-        driver.find_element(By.CLASS_NAME, "wk_choicesInstLink")
         timeout = 0
         while timeout < 10: 
             try:
@@ -103,7 +100,6 @@ def browser_quiz():
                     driver.find_element(By.XPATH,'//input[@type="submit" and @name="submit"]').click()
                     time.sleep(8)
                     break
-    except:
     except:
         pass
 
@@ -136,7 +132,6 @@ def daily_poll():
     try:
         driver.find_element(By. ID,"btoption" + str(random.randint(0, 1))).click()
         time.sleep(5)
-    except:
     except:
         pass
 
