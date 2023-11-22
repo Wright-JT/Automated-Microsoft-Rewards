@@ -14,14 +14,15 @@ import sys
 
 mobile_user_agent = "Mozilla/5.0 (iPhone; CPU iPhone OS 13_3_1 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/13.0.5 Mobile/15E148 Safari/604.1"
 date = datetime.date.today()
-pointsCheck1 = 0
-pointsCheck2 = 0
+pointsCheck1 = 2
+pointsCheck2 = 2
 error_detected_max = 5 #Amount of times the program will restart if the program crashes.
+timeout = 0
 
-desktop_searches = 40 #34 Searches = 170 Points
-mobile_searches = 25 #20 Searches = 100 Points
+desktop_searches = 0 #34 Searches = 170 Points
+mobile_searches = 0 #20 Searches = 100 Points
 
-def initialize_driver():
+def initialize_driver(): #Starts the webdriver and checks whether or not its currently running.
     try:
         driver = webdriver.Edge()
         return driver
@@ -29,7 +30,7 @@ def initialize_driver():
         print('Failed to initialize the driver.')
         return None
 
-def total_errors(errors_detected):
+def total_errors(errors_detected): #Catch all error checker, will restart program if there is an error not caught by something else first.
     if errors_detected == 0:
         print('Colossal failure.')
         time.sleep(5)
@@ -38,7 +39,7 @@ def total_errors(errors_detected):
         print(f'Error detected, restarting in 10 seconds... ({errors_detected} restarts remaining.)')
         time.sleep(10)
 
-def auto_search(SearchType):
+def auto_search(SearchType): #Searches random web pages
     while SearchType > 0:
         fake = Faker()
         search = fake.name()
@@ -46,7 +47,7 @@ def auto_search(SearchType):
         time.sleep(random.randint(7,10))
         SearchType = SearchType - 1
 
-def mobile_swap(driver, x):
+def mobile_swap(driver, x): #Repsonsible for swapping from desktop to mobile user interface, for mobile searches. or vice versa
     while True:
         try:
             if x == 'mobile':
@@ -60,14 +61,14 @@ def mobile_swap(driver, x):
         except:
             time.sleep(5)
 
-def internet_check():
+def internet_check(): #Checks if there is internet before the program starts
     try:
         return ping("8.8.8.8", timeout=2) is not None
     except Exception:
         print('No internet detected. Trying again in 10 minutes.')
         time.sleep(600)
 
-def point_counter(BeforeOrAfter):
+def point_counter(BeforeOrAfter): #Takes note of total points before and after script
     driver.get('https://www.bing.com')
     while True:
         try: 
@@ -83,11 +84,10 @@ def point_counter(BeforeOrAfter):
             driver.refresh()
             time.sleep(10)
 
-def browser_quiz():
+def browser_quiz(): #Called if there is an inbrowser point quiz.
     try: 
         driver.find_element(By.CLASS_NAME, "wk_choicesInstLink")
-        timeout = 0
-        while timeout < 10: 
+        while True: 
             try:
                 driver.find_element(By.XPATH, '//img[contains(@alt, "Checkmark Image")]')
                 break
@@ -101,9 +101,8 @@ def browser_quiz():
     except:
         pass
 
-def popup_quiz():
+def popup_quiz(): #Called if there is pop-up point quiz.
     try:
-        timeout = 0
         driver.find_element(By.ID,'rqStartQuiz').click()
         time.sleep(5)
         span_element = driver.find_element(By.CLASS_NAME,"rqMCredits")
@@ -126,14 +125,14 @@ def popup_quiz():
     except:
         pass
 
-def daily_poll():
+def daily_poll(): #Called if there is daily poll.
     try:
         driver.find_element(By. ID,"btoption" + str(random.randint(0, 1))).click()
         time.sleep(5)
     except:
         pass
 
-def switch_window():
+def switch_window(): #Switches from a recently opened tab to the original tab
     driver.close()
     driver.switch_to.window(driver.window_handles[0])
 
@@ -149,7 +148,13 @@ def log_points(pointsCheck1, pointsCheck2): #Logs made points into text document
         with open(pointsLog, 'w') as file:
             file.write(newLine)
 
-def credentials():
+def credential_notif(): #Informs user to set an email and password.
+    driver.close()
+    print('Please add a username and password to the credentials text document.')
+    time.sleep(10)
+    sys.exit()
+
+def credentials(): #Reads credentials text document for email and password.
     Credentials = 'Credentials.txt'
     if os.path.exists(Credentials):
         with open(Credentials, 'r') as file:
@@ -164,20 +169,13 @@ def credentials():
             Password = UserPass[PasswordStart:PasswordEnd]
 
         if (Email == 'YOUR EMAIL HERE') and (Password == 'YOUR PASSWORD HERE'):
-            print('Please add a username and password to the credentials text document.')
-            time.sleep(10)
-            driver.quit()
-            sys.exit()
+            credential_notif()
         else:
             sign_in(Email, Password)
-
     else:
         with open(Credentials, 'w') as file:
             file.write('Do not change or modify anything that is not in quotes.\n\nUsername: "YOUR EMAIL HERE" \nPassword: "YOUR PASSWORD HERE"')
-            print('Please add a username and password to the credentials text document.')
-        time.sleep(10)
-        driver.quit()
-        sys.exit()
+        credential_notif()
 
 def sign_in(Username, Password):
     driver.get('https://tinyurl.com/ydfke3nt') 
@@ -199,7 +197,7 @@ def sign_in(Username, Password):
         except:
             time.sleep(2)
 
-def find_all_dailies():
+def find_all_dailies(): #Finds all daily clickable activies on the rewards screen
     try:
         driver.get('https://rewards.bing.com/')
         WebDriverWait(driver, 10).until(EC.presence_of_element_located((By.CSS_SELECTOR, 'span.mee-icon.mee-icon-AddMedium')))
@@ -220,7 +218,7 @@ def find_all_dailies():
     except Exception as e:
         print(f'Error {e}')
 
-def power_off():
+def power_off(): 
     driver.quit()
     ctypes.windll.powrprof.SetSuspendState(0, 1, 0)
     sys.exit()
